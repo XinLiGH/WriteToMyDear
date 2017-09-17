@@ -1,6 +1,8 @@
 #include "widget.h"
 #include "ui_widget.h"
 
+#define IMAGE_SIZE   (QWidget::size() - QSize(18, 18))
+
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget),
@@ -10,13 +12,11 @@ Widget::Widget(QWidget *parent) :
     mediaPlaylist(new QMediaPlaylist),
     imageDir(new QDir),
     imageFileInfo(new QList<QFileInfo>),
-    imageTimer(new QTimer)
+    imageTimer(new QTimer),
+    imageRefreshTimer(new QTimer)
 {
-    frameSize = QSize(18, 18);
-
     ui->setupUi(this);
     ui->image->setAlignment(Qt::AlignCenter);
-    imageSize = QWidget::size() - frameSize;
 
     musicDir->setPath("music");
     musicDir->setNameFilters(QStringList("*.mp3"));
@@ -42,7 +42,9 @@ Widget::Widget(QWidget *parent) :
     imageDisplay();
 
     imageTimer->start(5000);
+    imageRefreshTimer->start(10);
     connect(imageTimer, SIGNAL(timeout()), this, SLOT(imageDisplay()));
+    connect(imageRefreshTimer, SIGNAL(timeout()), this, SLOT(imageRefresh()));
 }
 
 Widget::~Widget()
@@ -57,11 +59,35 @@ Widget::~Widget()
     delete imageFileInfo;
     delete imageRandomNumber;
     delete imageTimer;
+    delete imageRefreshTimer;
 }
 
 void Widget::imageDisplay()
 {
-    QPixmap pixmap = QPixmap(imageFileInfo->at(imageRandomNumber->getRandomNumber()).filePath()).scaled(imageSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    QWidget::setMaximumSize(pixmap.size() + frameSize);
+    if(imageSize != IMAGE_SIZE)
+    {
+        imageSize = IMAGE_SIZE;
+
+        QRect imageRect = ui->image->geometry();
+        imageRect.setSize(imageSize);
+        ui->image->setGeometry(imageRect);
+    }
+
+    imageFilePath = imageFileInfo->at(imageRandomNumber->getRandomNumber()).filePath();
+    QPixmap pixmap = QPixmap(imageFilePath).scaled(imageSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     ui->image->setPixmap(pixmap);
+}
+
+void Widget::imageRefresh()
+{
+    if(imageSize != IMAGE_SIZE)
+    {
+        imageSize = IMAGE_SIZE;
+
+        QRect imageRect = ui->image->geometry();
+        imageRect.setSize(imageSize);
+        ui->image->setGeometry(imageRect);
+        QPixmap pixmap = QPixmap(imageFilePath).scaled(imageSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        ui->image->setPixmap(pixmap);
+    }
 }

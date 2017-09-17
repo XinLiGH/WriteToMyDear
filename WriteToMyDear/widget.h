@@ -22,11 +22,10 @@ public:
 
 private slots:
     void imageDisplay();
+    void imageRefresh();
 
 private:
     Ui::Widget *ui;
-    QSize frameSize;
-    QSize imageSize;
     QDir *musicDir;
     QList<QFileInfo> *musicFileInfo;
     QMediaPlayer *mediaPlayer;
@@ -36,6 +35,9 @@ private:
     QList<QFileInfo> *imageFileInfo;
     RandomNumber *imageRandomNumber;
     QTimer *imageTimer;
+    QTimer *imageRefreshTimer;
+    QString imageFilePath;
+    QSize imageSize;
 };
 
 #endif // WIDGET_H
